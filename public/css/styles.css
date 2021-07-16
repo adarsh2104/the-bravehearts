@@ -51,6 +51,8 @@
 body {
     background-image: url("../static/Tiranga Wallpaper Indian Flag.jpeg");
     background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position:10px 10px;
     
 }
 .top-content {
