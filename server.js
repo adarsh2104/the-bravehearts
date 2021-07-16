@@ -1,11 +1,17 @@
 //jshint esversion:6
 
-const express = require("express");
 const bodyParser = require("body-parser");
+const cors = require('cors');
+const path = require('path')
 const ejs = require("ejs");
 const _ = require('lodash');
+const app = express();
+
+
 const mongoose = require('mongoose');
-mongoose.connect("mongodb://localhost:27017/blogs", { useNewUrlParser: true,useUnifiedTopology: true });
+const connection = "mongodb+srv://adarsh:2104@Cluster0/mongo?retryWrites=true&w=majority";
+mongoose.connect(connection, { useNewUrlParser: true,useUnifiedTopology: true, useFindAndModify: false });
+
 
 const blogSchema = new mongoose.Schema({
   title:String,
@@ -18,11 +24,12 @@ const homeStartingContent = "They are men of steel, standing tall in the harshes
 const aboutContent = "We believe that the support of our readers and followers are very crucial in attaining our objectives as a source of crisp and clear information. We thank you all for all the support and love that you have been showering us with. And we would like to iterate that the feeling is mutual. We hope to continue this relation in the many years to come.Please share your stories with our writers cover something in detail, please feel free to reach out to us on our email mentioned in the https://www.thebravehearts.in/contact section.";
 const contactContent = "The Bravehearts is committed to providing the best and simplified content to its audience. If you wish to contact the admin of The Bravehearts you can drop us an email at admin@thebravehearts.com.We value feedback from you and thus if you wish to contact us you can send us an email on contact@thebravehearts.com. ";
 
-const app = express();
+
 
 app.set('view engine', 'ejs');
 
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cors());
 app.use(express.static("public"));
 
 app.route("/")
@@ -73,10 +80,7 @@ app.route("/posts/:id")
 });
 
 
-
-
-
-
-app.listen(3005, function() {
-  console.log("Server started on port 3005");
+const port = process.env.PORT || 5000;
+app.listen(port, () => {
+    console.log(`Server started on port ${port}`);
 });
