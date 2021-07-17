@@ -23,7 +23,7 @@ const {MongoClient} = require('mongodb');
 // const blog = mongoose.model("blog",blogSchema);
 
 
-async function main(operationType){
+async function main(operationType,params){
   const uri = "mongodb+srv://adarsh:2104@cluster0.xppwx.mongodb.net/mongo?retryWrites=true&w=majority";
  
   const client = new MongoClient(uri,{ useNewUrlParser: true,useUnifiedTopology: true });
@@ -33,6 +33,9 @@ async function main(operationType){
       await client.connect();
       if (operationType === 'get_all'){
           result = await showAllListing(client);
+      }
+      else if (operationType === 'get_post_by_params' && params ){
+        result = await showAllListing(client,params);
       }
       // Make the appropriate DB calls
 
@@ -80,9 +83,14 @@ async function main(operationType){
 
 main().catch(console.error);
 
-async function showAllListing(client){
+async function showAllListing(client,params){
+  if (!params) {
+    params = {} ;
+  }
+  
   // See https://mongodb.github.io/node-mongodb-native/3.6/api/Collection.html#insertMany for the insertMany() docs
-  const result = client.db("mongo").collection("blogs").find({});
+  console.log('params=',params)
+  const result = client.db("mongo").collection("blogs").find(params);
 
 
   const data = await result.toArray();
@@ -156,11 +164,22 @@ app.route("/compose")
 
 app.route("/posts/:id")
 .get((req,res)=>{
+
+  var ObjectId = require('mongodb').ObjectId; 
   const id = req.params.id
-  blog.findById(id.toString(), function (err, currentPost) {
-    if(!err){
-      res.render("post",{post:currentPost})}
-  });
+  var o_id = new ObjectId(id);
+
+  
+  main('get_post_by_params',{_id:o_id}).then(currentPost => {
+    console.log('data=',currentPost);
+    res.render("post",{post:currentPost[0]})}
+  ).catch(console.error);
+
+
+  // blog.findById(id.toString(), function (err, currentPost) {
+  //   if(!err){
+  //     res.render("post",{post:currentPost})}
+  // });
 
 });
 
