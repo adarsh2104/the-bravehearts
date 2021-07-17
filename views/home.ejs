@@ -1,6 +1,7 @@
 <%- include('partials/header'); %>
-<body>
+<div >
     <!-- <h1>Home</h1> -->
+    <div>
     <strong><p class="top-content"><%= homeStartingContent %></p></strong>
 
     <% posts.map(function(post) {  %>
@@ -8,12 +9,13 @@
 
       <% if((post.content.length > 100)){ %>
        <p class="bottom-content"><%=post.content.slice(0,100)%><a
-         href=<%='/posts/'+post.id%>
+         href=<%='/posts/'+post._id%>
 
          >  Read more...</a></p>
     <% } else{ %>
      <p class="bottom-content"><%=post.content%></p>
      <% } %>
     <% }); %>
-    </body>
+  </div>
+</div>
 <%- include('partials/footer'); %>
