@@ -7,8 +7,7 @@ const path = require('path')
 const ejs = require("ejs");
 const _ = require('lodash');
 const app = express();
-const {MongoClient} = require('mongodb');
-
+const { MongoClient } = require('mongodb');
 
 // const mongoose = require('mongoose');
 // const connection = "mongodb+srv://adarsh:2104@Cluster0/Cluster0?retryWrites=true&w=majority";
@@ -19,94 +18,95 @@ const {MongoClient} = require('mongodb');
 //   title:String,
 //   content:String
 // });
-
 // const blog = mongoose.model("blog",blogSchema);
 
 
-async function main(operationType,params){
+async function main(operationType, params) {
   const uri = "mongodb+srv://adarsh:2104@cluster0.xppwx.mongodb.net/mongo?retryWrites=true&w=majority";
- 
-  const client = new MongoClient(uri,{ useNewUrlParser: true,useUnifiedTopology: true });
-  let result ;
+  const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+  let result;
   try {
-      // Connect to the MongoDB cluster
-      await client.connect();
-      if (operationType === 'get_all'){
-          result = await showAllListing(client);
-      }
-      else if (operationType === 'get_post_by_params' && params ){
-        result = await showAllListing(client,params);
-      }
-      // Make the appropriate DB calls
+    // Connect to the MongoDB cluster
+    await client.connect();
+    if (operationType === 'get_all') {
+      result = await showAllListing(client);
+    }
+    else if (operationType === 'get_post_by_params' && params) {
+      result = await showAllListing(client, params);
+    }
 
-      // Create a single new listing
-      // await createListing(client,
-      //     {
-      //         name: "Lovely Loft",
-      //         summary: "A charming loft in Paris",
-      //         bedrooms: 1,
-      //         bathrooms: 1
-      //     }
-      // );
+    else if (operationType === 'save_new_posts') {
+      result = await createNewPost(client, params);
+    }
+    // Make the appropriate DB calls
 
-      // Create 3 new listings
-      // await createMultipleListings(client, [
-      //     {
-      //         name: "Infinite Views",
-      //         summary: "Modern home with infinite views from the infinity pool",
-      //         property_type: "House",
-      //         bedrooms: 5,
-      //         bathrooms: 4.5,
-      //         beds: 5
-      //     },
-      //     {
-      //         name: "Private room in London",
-      //         property_type: "Apartment",
-      //         bedrooms: 1,
-      //         bathroom: 1
-      //     },
-      //     {
-      //         name: "Beautiful Beach House",
-      //         summary: "Enjoy relaxed beach living in this house with a private beach",
-      //         bedrooms: 4,
-      //         bathrooms: 2.5,
-      //         beds: 7,
-      //         last_review: new Date()
-      //     }
-      // ]);
+    // Create a single new listing
+    // await createListing(client,
+    //     {
+    //         name: "Lovely Loft",
+    //         summary: "A charming loft in Paris",
+    //         bedrooms: 1,
+    //         bathrooms: 1
+    //     }
+    // );
+
+    // Create 3 new listings
+    // await createMultipleListings(client, [
+    //     {
+    //         name: "Infinite Views",
+    //         summary: "Modern home with infinite views from the infinity pool",
+    //         property_type: "House",
+    //         bedrooms: 5,
+    //         bathrooms: 4.5,
+    //         beds: 5
+    //     },
+    //     {
+    //         name: "Private room in London",
+    //         property_type: "Apartment",
+    //         bedrooms: 1,
+    //         bathroom: 1
+    //     },
+    //     {
+    //         name: "Beautiful Beach House",
+    //         summary: "Enjoy relaxed beach living in this house with a private beach",
+    //         bedrooms: 4,
+    //         bathrooms: 2.5,
+    //         beds: 7,
+    //         last_review: new Date()
+    //     }
+    // ]);
   } finally {
-      // Close the connection to the MongoDB cluster
-      await client.close();
-      return result;
+    // Close the connection to the MongoDB cluster
+    await client.close();
+    return result;
   }
 }
 
 main().catch(console.error);
 
-async function showAllListing(client,params){
+async function showAllListing(client, params) {
   if (!params) {
-    params = {} ;
+    params = {};
   }
-  
-  // See https://mongodb.github.io/node-mongodb-native/3.6/api/Collection.html#insertMany for the insertMany() docs
-  console.log('params=',params)
+
+  console.log('params=', params)
   const result = client.db("mongo").collection("blogs").find(params);
 
 
   const data = await result.toArray();
-  // console.log(`${result.insertedCount} new listing(s) created with the following id(s):`);
-  // console.log(data);
   return data;
 }
 
 
+async function createNewPost(client, params) {
+  if (params) {
 
-
-
-
-
-
-
+    console.log('params=', params)
+    const result = await client.db("mongo").collection("blogs").insertOne(params);
+    console.log(`New listing created with the following id: ${result.insertedId}`);
+    return result.insertedId;
+  }
+}
 
 
 
@@ -118,73 +118,84 @@ const contactContent = "The Bravehearts is committed to providing the best and s
 
 app.set('view engine', 'ejs');
 
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 app.use(express.static("public"));
 
 app.route("/")
-.get((req,res)=>{
-  main('get_all').then(posts => {
-    console.log('data=',posts);
-    res.render("home",{homeStartingContent:homeStartingContent,posts:posts})
-  }).catch(console.error);
-  // blog.find((err,post)=>{
-  //   if (!err){
-  //     posts = post;
-  //   };
-  
-  // })
+  .get((req, res) => {
+    main('get_all').then(posts => {
+      console.log('data=', posts);
+      res.render("home", { homeStartingContent: homeStartingContent, posts: posts })
+    }).catch(console.error);
+    // blog.find((err,post)=>{
+    //   if (!err){
+    //     posts = post;
+    //   };
 
-});
+    // })
+
+  });
 
 app.route("/about")
-.get((req,res)=>{
-  res.render("about",{aboutContent:aboutContent})
-});
+  .get((req, res) => {
+    res.render("about", { aboutContent: aboutContent })
+  });
 
 app.route("/contact")
-.get((req,res)=>{
-  res.render("contact",{contactContent:contactContent})
-})
+  .get((req, res) => {
+    res.render("contact", { contactContent: contactContent })
+  })
 
 app.route("/compose")
-.get((req,res)=>{res.render("compose")})
-.post((req,res)=>{
-  const post = new blog ({
-    'title':req.body.postTitle,
-    'content':req.body.postBody
-  });
-  post.save(err=>{
-    if(!err){
-      res.redirect("/");}
+  .get((req, res) => { res.render("compose") })
+  .post((req, res) => {
+    // const post = new blog ({
+    //   'title':req.body.postTitle,
+    //   'content':req.body.postBody
+    // });
+    const post = {
+      'title': req.body.postTitle,
+      'content': req.body.postBody
+    };
 
+    main('save_new_posts', post).then(insertedPostId => {
+      console.log('data=', insertedPostId);
+      if (insertedPostId) { res.redirect("/"); }
     }
-  );
-});
+    ).catch(console.error);
+    // post.save(err=>{
+    //   if(!err){
+    //     res.redirect("/");}
+
+    //   }
+    // );
+  });
 
 app.route("/posts/:id")
-.get((req,res)=>{
+  .get((req, res) => {
 
-  var ObjectId = require('mongodb').ObjectId; 
-  const id = req.params.id
-  var o_id = new ObjectId(id);
-
-  
-  main('get_post_by_params',{_id:o_id}).then(currentPost => {
-    console.log('data=',currentPost);
-    res.render("post",{post:currentPost[0]})}
-  ).catch(console.error);
+    var ObjectId = require('mongodb').ObjectId;
+    const id = req.params.id
+    var o_id = new ObjectId(id);
 
 
-  // blog.findById(id.toString(), function (err, currentPost) {
-  //   if(!err){
-  //     res.render("post",{post:currentPost})}
-  // });
+    main('get_post_by_params', { _id: o_id }).then(currentPost => {
+      console.log('data=', currentPost);
+      res.render("post", { post: currentPost[0] })
+    }
+    ).catch(console.error);
 
-});
+
+    // blog.findById(id.toString(), function (err, currentPost) {
+    //   if(!err){
+    //     res.render("post",{post:currentPost})}
+    // });
+
+  });
 
 
 const port = process.env.PORT || 5000;
 app.listen(port, () => {
-    console.log(`Server started on port ${port}`);
+  console.log(`Server started on port ${port}`);
 });
